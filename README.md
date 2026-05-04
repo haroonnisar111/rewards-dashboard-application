@@ -20,12 +20,13 @@ A React.js web application that calculates and displays reward points for custom
 
 The Customer Rewards Dashboard tracks customer transactions and dynamically calculates reward points based on purchase amounts. Key highlights include:
 
-- **Leaderboard Stack View**: Customers are ranked by total reward points or transaction activity in a stacked row layout and point total at a glance.
+- **Leaderboard Stack View**: Customers are ranked by total reward points or transaction activity in a stacked row layout — each row shows rank, avatar, a relative progress bar, tier badge, and point total at a glance.
+- **Tier Classification**: Customers are automatically classified into Platinum, Gold, Silver, or Bronze tiers based on their share of the highest reward total.
 - **Customer Summary**: Selecting a customer collapses other rows and reveals a monthly breakdown table for that customer.
 - **Monthly Details Table**: Breaks down reward points by month — amount spent and points earned per period.
 - **Last Three Months View**: Highlights cumulative rewards and month-by-month transaction details for the most recent three consecutive months.
 - **Data Visualization**: Bar chart of monthly reward totals across all customers for trend analysis.
-- **Lazy Loading**: The leaderboard loads customers in chunks as you scroll 
+- **Lazy Loading**: The leaderboard loads customers in chunks as you scroll — no pagination needed.
 - **Dynamic Calculations**: Reward points update in real time as new transaction data is introduced.
 - **Filtering and Sorting**: Sort by top rewards or most active customers; filter by customer ID via search.
 
@@ -33,7 +34,7 @@ The Customer Rewards Dashboard tracks customer transactions and dynamically calc
 
 ## Technologies Used
 
-- **React.js (v18)** — component-based UI
+- **React.js (v19)** — component-based UI
 - **styled-components** — CSS-in-JS styling with scoped, dynamic styles per component
 - **Chart.js / React-chartjs-2** — bar chart for monthly rewards visualization
 - **PropTypes** — runtime prop type validation
@@ -53,7 +54,7 @@ The Customer Rewards Dashboard tracks customer transactions and dynamically calc
 
 **Lazy Loading** — an `IntersectionObserver` watches a sentinel element below the list. When it enters the viewport, the next chunk of rows is appended. This replaces pagination entirely and keeps the scroll experience fluid.
 
-**Component Separation** — styles, row logic, and grid orchestration are split across three dedicated files (`customerRowStyles.js`, `CustomerRow.jsx`, `CustomerGrid.jsx`) for maintainability and reuse.
+**Component Separation** — styles, row logic, and grid orchestration are split across three dedicated files (`rewardsRowStyles.js`, `rewardsCard.js`, `customerGrid.js`) for maintainability and reuse.
 
 **Optimization** — `useMemo` is used only where computation is genuinely expensive: building the full customer list from raw transactions, and filtering + sorting that list. Cheap derivations (`maxPts`, `visible`, `hasMore`) are computed inline. `React.memo` wraps `CustomerRow` to prevent re-renders when unrelated state (e.g. `visCount`) changes.
 
@@ -64,16 +65,32 @@ The Customer Rewards Dashboard tracks customer transactions and dynamically calc
 ```
 src/
 ├── index.js                          # App entry point
-├── App.js                            # Root component
+├── App.js                            # Root 
+├── App.css
+├── index.css
 ├── components/
 │   ├── dashboard.js                  # Main dashboard layout and stat cards
-│   ├── CustomerGrid.jsx              # Leaderboard grid — search, sort, lazy load orchestration
-│   ├── CustomerRow.jsx               # Single leaderboard row (rank, avatar, bar, tier, points)
+│   ├── customerGrid.js               # Leaderboard grid — search, sort, lazy load orchestration
+│   ├── rewardsCard.js                # Single leaderboard row (avatar, points)
 │   ├── transactionTable.js           # Detailed transaction list for a selected customer
 │   ├── rewardDetails.js              # Monthly reward breakdown for a selected customer
 │   └── filters.js                    # Filter/sort controls
+├── constant/
+│   └── constant.js                   # App-wide constants (DATA_URL, etc.)
+├── hooks/
+│   └── useFetchTransactions.js       # Custom hook for fetching transaction data
+├── loggers/
+│   └── index.js                      # Logger utility
 ├── styles/
-│   └── customerRowStyles.js          # styled-components for CustomerRow (StackList, Row, etc.)
+│   ├── customerGridStyles.js         # styled-components for CustomerGrid
+│   ├── dashboardStyles.js            # styled-components for Dashboard
+│   ├── filtersStyles.js              # styled-components for Filters
+│   ├── globalStyles.js               # Global base styles
+│   ├── rewardsRowStyles.js           # styled-components for RewardsCard (StackList, Row, Avatar, etc.)
+│   └── tableStyles.js                # styled-components for TransactionTable
+├── tests/
+│   ├── calculateRewards.test.js      # Unit tests for reward calculation logic
+│   └── dashboard.test.js             # Integration tests for Dashboard component
 └── utils/
     └── calculateRewards.js           # Core reward point calculation logic
 ```
@@ -82,7 +99,8 @@ src/
 
 ## Features
 
-- **Leaderboard Stack** — ranked rows and points; selected row highlighted 
+- **Leaderboard Stack** — ranked rows with avatar, progress bar, tier badge, and points; selected row highlighted with a blue left-border accent
+- **Tier Badges** — Platinum / Gold / Silver / Bronze dynamically assigned per customer
 - **Lazy Loading** — `IntersectionObserver`-based infinite scroll; loads 5 rows per chunk
 - **Search** — filter customers by ID in real time
 - **Sort** — toggle between "Top rewards" and "Most active" with a single click
@@ -147,10 +165,15 @@ The app will be available at `http://localhost:3000`.
 
 ## Testing
 
-Unit tests cover reward calculation logic and the customer rewards components using Jest and React Testing Library.
+Unit tests cover reward calculation logic and the dashboard component using Jest and React Testing Library.
 
 ```bash
 npm test
 ```
+
+| Test file | Coverage |
+|---|---|
+| `calculateRewards.test.js` | Core reward point calculation logic |
+| `dashboard.test.js` | Dashboard component rendering and integration |
 
 ![Testing](tests.png)
